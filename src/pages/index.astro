@@ -52,10 +52,24 @@ import Layout from '../layouts/Layout.astro';
       </p>
       
       <div class="grid md:grid-cols-3 gap-8">
-        <!-- Card 1 -->
+        <!-- Card 1 - Architektur HERVORGEHOBEN -->
+        <div class="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-8 hover:shadow-xl transition group ring-2 ring-blue-200">
+          <div class="w-14 h-14 bg-blue-600 rounded-xl flex items-center justify-center mb-6 shadow-lg">
+            <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"/>
+            </svg>
+          </div>
+          <div class="text-xs font-semibold text-blue-600 mb-2">⭐ KERNKOMPETENZ</div>
+          <h3 class="text-xl font-bold mb-3">Software- & Systemarchitektur</h3>
+          <p class="text-gray-600">
+            ISAQB Advanced zertifiziert. Von Enterprise-Architektur (TOGAF) bis Microservices – die richtige Architektur für Ihr Projekt.
+          </p>
+        </div>
+
+        <!-- Card 2 -->
         <div class="bg-gray-50 rounded-2xl p-8 hover:shadow-lg transition group">
-          <div class="w-14 h-14 bg-blue-100 rounded-xl flex items-center justify-center mb-6 group-hover:bg-blue-600 transition">
-            <svg class="w-7 h-7 text-blue-600 group-hover:text-white transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div class="w-14 h-14 bg-indigo-100 rounded-xl flex items-center justify-center mb-6 group-hover:bg-indigo-600 transition">
+            <svg class="w-7 h-7 text-indigo-600 group-hover:text-white transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
             </svg>
           </div>
@@ -65,7 +79,7 @@ import Layout from '../layouts/Layout.astro';
           </p>
         </div>
 
-        <!-- Card 2 -->
+        <!-- Card 3 -->
         <div class="bg-gray-50 rounded-2xl p-8 hover:shadow-lg transition group">
           <div class="w-14 h-14 bg-cyan-100 rounded-xl flex items-center justify-center mb-6 group-hover:bg-cyan-600 transition">
             <svg class="w-7 h-7 text-cyan-600 group-hover:text-white transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -75,19 +89,6 @@ import Layout from '../layouts/Layout.astro';
           <h3 class="text-xl font-semibold mb-3">Legacy-Modernisierung</h3>
           <p class="text-gray-600">
             Renovation von Legacy-Systemlandschaften inkl. Containerisierung. Docker, Kubernetes, OpenShift – Schritt für Schritt in die Moderne.
-          </p>
-        </div>
-
-        <!-- Card 3 -->
-        <div class="bg-gray-50 rounded-2xl p-8 hover:shadow-lg transition group">
-          <div class="w-14 h-14 bg-indigo-100 rounded-xl flex items-center justify-center mb-6 group-hover:bg-indigo-600 transition">
-            <svg class="w-7 h-7 text-indigo-600 group-hover:text-white transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"/>
-            </svg>
-          </div>
-          <h3 class="text-xl font-semibold mb-3">Software Architektur</h3>
-          <p class="text-gray-600">
-            ISAQB Advanced zertifiziert. Von Microservices bis Monolith – die richtige Architektur für Ihr Projekt.
           </p>
         </div>
       </div>
@@ -104,7 +105,7 @@ import Layout from '../layouts/Layout.astro';
         <div class="text-center">
           <h4 class="font-semibold text-gray-900 mb-3">🏗️ Architektur</h4>
           <div class="flex flex-wrap gap-2 justify-center">
-            {['ISAQB', 'arc42', 'C4 Model', 'Domain-Driven', 'Microservices'].map(t => (
+            {['ISAQB', 'TOGAF', 'arc42', 'C4 Model', 'Domain-Driven', 'Microservices'].map(t => (
               <span class="px-2 py-1 bg-blue-50 text-blue-700 rounded text-xs">{t}</span>
             ))}
           </div>
