@@ -1,0 +1,88 @@
+#!/bin/bash
+set -e
+
+# Configuration
+IMAGE_NAME="plaintext-website"
+NAS_HOST="192.100.0.1"
+NAS_USER="mad"
+NAS_PATH="/volume1/docker/plaintext-website"
+DEV_PORT="1120"
+
+# Colors
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+NC='\033[0m'
+
+echo -e "${GREEN}=== Plaintext Website Build ===${NC}"
+
+# Parse arguments
+DO_BUILD=false
+DO_DEPLOY=false
+
+for arg in "$@"; do
+    case $arg in
+        1) DO_BUILD=true ;;
+        5) DO_DEPLOY=true ;;
+        15) DO_BUILD=true; DO_DEPLOY=true ;;
+        *) echo "Usage: ./build [1] [5] or [15]"
+           echo "  1 = Build Docker image"
+           echo "  5 = Deploy to NAS (DEV)"
+           echo "  15 = Build + Deploy"
+           exit 1 ;;
+    esac
+done
+
+if [ "$DO_BUILD" = false ] && [ "$DO_DEPLOY" = false ]; then
+    echo "Usage: ./build [1] [5] or [15]"
+    echo "  1 = Build Docker image"
+    echo "  5 = Deploy to NAS (DEV)"
+    echo "  15 = Build + Deploy"
+    exit 1
+fi
+
+# Step 1: Build
+if [ "$DO_BUILD" = true ]; then
+    echo -e "${YELLOW}[1/2] Building Docker image...${NC}"
+    docker build -t ${IMAGE_NAME}:latest .
+    
+    echo -e "${YELLOW}[2/2] Saving image...${NC}"
+    docker save ${IMAGE_NAME}:latest | gzip > /tmp/${IMAGE_NAME}.tar.gz
+    echo -e "${GREEN}✓ Image saved to /tmp/${IMAGE_NAME}.tar.gz${NC}"
+fi
+
+# Step 5: Deploy to DEV
+if [ "$DO_DEPLOY" = true ]; then
+    echo -e "${YELLOW}[Deploy] Transferring to NAS...${NC}"
+    scp /tmp/${IMAGE_NAME}.tar.gz ${NAS_USER}@${NAS_HOST}:/tmp/
+    
+    echo -e "${YELLOW}[Deploy] Loading image on NAS...${NC}"
+    ssh ${NAS_USER}@${NAS_HOST} "sudo docker load < /tmp/${IMAGE_NAME}.tar.gz"
+    
+    echo -e "${YELLOW}[Deploy] Creating directory...${NC}"
+    ssh ${NAS_USER}@${NAS_HOST} "sudo mkdir -p ${NAS_PATH}"
+    
+    echo -e "${YELLOW}[Deploy] Copying docker-compose...${NC}"
+    scp docker-compose.yaml ${NAS_USER}@${NAS_HOST}:${NAS_PATH}/
+    
+    echo -e "${YELLOW}[Deploy] Stopping old container...${NC}"
+    ssh ${NAS_USER}@${NAS_HOST} "sudo docker stop ${IMAGE_NAME} 2>/dev/null || true"
+    ssh ${NAS_USER}@${NAS_HOST} "sudo docker rm ${IMAGE_NAME} 2>/dev/null || true"
+    
+    echo -e "${YELLOW}[Deploy] Starting container...${NC}"
+    ssh ${NAS_USER}@${NAS_HOST} "cd ${NAS_PATH} && sudo docker compose up -d"
+    
+    echo -e "${YELLOW}[Deploy] Waiting for healthcheck...${NC}"
+    sleep 5
+    
+    # Check if running
+    if ssh ${NAS_USER}@${NAS_HOST} "sudo docker ps | grep -q ${IMAGE_NAME}"; then
+        echo -e "${GREEN}✓ Container running!${NC}"
+        echo -e "${GREEN}✓ Website: http://${NAS_HOST}:${DEV_PORT}${NC}"
+    else
+        echo -e "\033[0;31m✗ Container failed to start${NC}"
+        ssh ${NAS_USER}@${NAS_HOST} "sudo docker logs ${IMAGE_NAME}"
+        exit 1
+    fi
+fi
+
+echo -e "${GREEN}=== Done ===${NC}"
