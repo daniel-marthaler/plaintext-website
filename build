@@ -8,6 +8,18 @@ NAS_USER="mad"
 NAS_PATH="/volume1/docker/plaintext-website"
 DEV_PORT="1120"
 
+# Get sudo password from credentials
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+CREDS_FILE="$HOME/.openclaw/workspace/credentials/nas.json"
+if [ -f "$CREDS_FILE" ]; then
+    NAS_SUDO_PASS=$(jq -r .sudoPassword "$CREDS_FILE")
+fi
+
+# Helper for sudo on NAS
+nas_sudo() {
+    echo "$NAS_SUDO_PASS" | ssh ${NAS_USER}@${NAS_HOST} "sudo -S $1" 2>/dev/null
+}
+
 # Colors
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
@@ -56,31 +68,32 @@ if [ "$DO_DEPLOY" = true ]; then
     scp /tmp/${IMAGE_NAME}.tar.gz ${NAS_USER}@${NAS_HOST}:/tmp/
     
     echo -e "${YELLOW}[Deploy] Loading image on NAS...${NC}"
-    ssh ${NAS_USER}@${NAS_HOST} "sudo docker load < /tmp/${IMAGE_NAME}.tar.gz"
+    echo "$NAS_SUDO_PASS" | ssh ${NAS_USER}@${NAS_HOST} "sudo -S docker load < /tmp/${IMAGE_NAME}.tar.gz" 2>/dev/null
     
     echo -e "${YELLOW}[Deploy] Creating directory...${NC}"
-    ssh ${NAS_USER}@${NAS_HOST} "sudo mkdir -p ${NAS_PATH}"
+    echo "$NAS_SUDO_PASS" | ssh ${NAS_USER}@${NAS_HOST} "sudo -S mkdir -p ${NAS_PATH}" 2>/dev/null
     
     echo -e "${YELLOW}[Deploy] Copying docker-compose...${NC}"
-    scp docker-compose.yaml ${NAS_USER}@${NAS_HOST}:${NAS_PATH}/
+    scp docker-compose.yaml ${NAS_USER}@${NAS_HOST}:/tmp/
+    echo "$NAS_SUDO_PASS" | ssh ${NAS_USER}@${NAS_HOST} "sudo -S cp /tmp/docker-compose.yaml ${NAS_PATH}/" 2>/dev/null
     
     echo -e "${YELLOW}[Deploy] Stopping old container...${NC}"
-    ssh ${NAS_USER}@${NAS_HOST} "sudo docker stop ${IMAGE_NAME} 2>/dev/null || true"
-    ssh ${NAS_USER}@${NAS_HOST} "sudo docker rm ${IMAGE_NAME} 2>/dev/null || true"
+    echo "$NAS_SUDO_PASS" | ssh ${NAS_USER}@${NAS_HOST} "sudo -S docker stop ${IMAGE_NAME} 2>/dev/null || true" 2>/dev/null
+    echo "$NAS_SUDO_PASS" | ssh ${NAS_USER}@${NAS_HOST} "sudo -S docker rm ${IMAGE_NAME} 2>/dev/null || true" 2>/dev/null
     
     echo -e "${YELLOW}[Deploy] Starting container...${NC}"
-    ssh ${NAS_USER}@${NAS_HOST} "cd ${NAS_PATH} && sudo docker compose up -d"
+    echo "$NAS_SUDO_PASS" | ssh ${NAS_USER}@${NAS_HOST} "cd ${NAS_PATH} && sudo -S docker compose up -d" 2>/dev/null
     
     echo -e "${YELLOW}[Deploy] Waiting for healthcheck...${NC}"
     sleep 5
     
     # Check if running
-    if ssh ${NAS_USER}@${NAS_HOST} "sudo docker ps | grep -q ${IMAGE_NAME}"; then
+    if echo "$NAS_SUDO_PASS" | ssh ${NAS_USER}@${NAS_HOST} "sudo -S docker ps 2>/dev/null" | grep -q ${IMAGE_NAME}; then
         echo -e "${GREEN}✓ Container running!${NC}"
         echo -e "${GREEN}✓ Website: http://${NAS_HOST}:${DEV_PORT}${NC}"
     else
         echo -e "\033[0;31m✗ Container failed to start${NC}"
-        ssh ${NAS_USER}@${NAS_HOST} "sudo docker logs ${IMAGE_NAME}"
+        echo "$NAS_SUDO_PASS" | ssh ${NAS_USER}@${NAS_HOST} "sudo -S docker logs ${IMAGE_NAME}" 2>/dev/null
         exit 1
     fi
 fi
